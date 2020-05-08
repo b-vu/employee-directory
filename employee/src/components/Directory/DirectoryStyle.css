@@ -1,0 +1,12 @@
+.input{
+    margin-bottom: 20px;
+    width: 300px;
+}
+
+.dropdown{
+    margin-bottom: 20px;
+}
+
+option:hover{
+    cursor: pointer;
+}

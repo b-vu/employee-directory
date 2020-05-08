@@ -1,0 +1,21 @@
+body{
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background-color: rgb(228, 228, 228);
+}
+
+html{
+    height: 100%;
+}
+
+.header{
+    height: 100px;
+    background-color: rgb(202, 35, 57);
+    text-align: center;
+    color: white;
+    font-size: 28px;
+    padding: 27px;
+    border-bottom: 3px solid black;
+    margin-bottom: 20px;
+}
