@@ -6,11 +6,9 @@ import "./DirectoryStyle.css";
 class Directory extends Component {
     state = {
         results: [],
-        searchResults: [],
-        filterResults: [],
-        searchAndFilterResults: [],
+        queryResults: [],
         searchTerm: "",
-        filter: ""
+        sort: ""
     }
 
     counter = 0;
@@ -23,70 +21,69 @@ class Directory extends Component {
         API.getEmployees().then(results => {
             this.setState({
                 results: results.data.results,
-                searchResults: results.data.results
+                queryResults: results.data.results
             })
         });
     }
 
     handleInputChange = event => {
         const { name, value } = event.target;
+        let searchedArray;
 
-        let employees;
-
-        if(!this.state.filter.length){
-            console.log("first: results");
-            employees = [...this.state.results];
+        if(this.state.sort.length){
+            searchedArray = this.applySort([...this.state.results], this.state.sort);
         }
-        else if(value.length && this.state.filter.length){
-            console.log("second: filterResults")
-            employees = [...this.state.filterResults];
-        }
-        else if(!value.length && !this.state.filter.length){
-            console.log("third: results")
-            employees = [...this.state.results];
-        }
-        else if(!value.length && !this.state.filterResults.length){
-            console.log("fourth: searchResults")
-            employees = [...this.state.searchResults];
-        }
-        else if(!value.length) {
-            console.log("fifth: filterResults")
-            employees = [...this.state.filterResults];
+        else{
+            searchedArray = [...this.state.results];
         }
 
-        const filteredArray = employees.filter(employee =>
-            employee.name.first.toLowerCase().includes(value.toLowerCase()) ||
-            employee.name.last.toLowerCase().includes(value.toLowerCase()) ||
-            (employee.name.first.toLowerCase() + " " + employee.name.last.toLowerCase()).includes(value.toLowerCase()) ||
-            (employee.name.first.toLowerCase() + employee.name.last.toLowerCase()).includes(value.toLowerCase()) ||
-            employee.email.toLowerCase().includes(value.toLowerCase()) ||
-            employee.cell.includes(value) ||
-            employee.login.username.toLowerCase().includes(value.toLowerCase())
-        );
+        const results = this.applySearch(searchedArray, value.toLowerCase());
 
         this.setState({
-            searchResults: filteredArray,
+            queryResults: results,
             [name]: value.toLowerCase()
         })
     }
 
-    handleFilterChange = event => {
+    handleSortChange = event => {
         const { value } = event.target;
-        let stateArray;
+        let sortedArray;
 
-        if(!this.state.searchTerm.length){
-            stateArray = [...this.state.results];
-        }
-        else if(this.state.searchTerm.length){
-            stateArray = [...this.state.searchResults];
+        if(this.state.searchTerm.length){
+            sortedArray = this.applySearch([...this.state.results], this.state.searchTerm);
         }
         else{
-            stateArray = [...this.state.searchResults];
+            sortedArray = [...this.state.results];
         }
+
+        const results = this.applySort(sortedArray, value);
+
+        this.setState({
+            queryResults: results,
+            sort: value
+        })
+    }
+
+    applySearch = (array, value) => {
+        const employees = array.filter(employee =>
+            employee.name.first.includes(value) ||
+            employee.name.last.includes(value) ||
+            (employee.name.first + " " + employee.name.last).includes(value) ||
+            (employee.name.first + employee.name.last).includes(value) ||
+            employee.email.includes(value) ||
+            employee.cell.includes(value) ||
+            employee.login.username.includes(value)
+        );
+
+        return employees;
+    }
+
+    applySort = (array, value) => {
+        const employees = array;
 
         switch (value) {
             case "First Name":
-                stateArray.sort((a, b) => {
+                employees.sort((a, b) => {
                     const firstNameA = a.name.first.toLowerCase();
                     const firstNameB = b.name.first.toLowerCase();
                     return (firstNameA < firstNameB) ? -1 : (firstNameA > firstNameB) ? 1 : 0;
@@ -94,7 +91,7 @@ class Directory extends Component {
                 break;
 
             case "Last Name":
-                stateArray.sort((a, b) => {
+                employees.sort((a, b) => {
                     const lastNameA = a.name.last.toLowerCase();
                     const lastNameB = b.name.last.toLowerCase();
                     return (lastNameA < lastNameB) ? -1 : (lastNameA > lastNameB) ? 1 : 0;
@@ -102,7 +99,7 @@ class Directory extends Component {
                 break;
 
             case "Email":
-                stateArray.sort((a, b) => {
+                employees.sort((a, b) => {
                     const emailA = a.email.toLowerCase();
                     const emailB = b.email.toLowerCase();
                     return (emailA < emailB) ? -1 : (emailA > emailB) ? 1 : 0;
@@ -110,7 +107,7 @@ class Directory extends Component {
                 break;
 
             case "Phone Number":
-                stateArray.sort((a, b) => {
+                employees.sort((a, b) => {
                     const numberA = a.cell.toLowerCase();
                     const numberB = b.cell.toLowerCase();
                     return (numberA < numberB) ? -1 : (numberA > numberB) ? 1 : 0;
@@ -118,7 +115,7 @@ class Directory extends Component {
                 break;
 
             case "Username":
-                stateArray.sort((a, b) => {
+                employees.sort((a, b) => {
                     const usernameA = a.login.username.toLowerCase();
                     const usernameB = b.login.username.toLowerCase();
                     return (usernameA < usernameB) ? -1 : (usernameA > usernameB) ? 1 : 0;
@@ -129,31 +126,19 @@ class Directory extends Component {
                 break;
         }
 
-        this.setState({
-            filterResults: stateArray,
-            filter: value
-        })
+        return employees;
     }
 
     render() {
         console.log(this.state);
+
         let resultsArray;
 
-        if(!this.state.searchTerm.length && !this.state.filter.length){
-            console.log("using results")
+        if(!this.state.searchTerm.length && !this.state.sort.length){
             resultsArray = this.state.results;
         }
-        else if(this.state.filter.length && this.state.searchTerm.length){
-            console.log("using filter and search")
-            resultsArray = this.state.searchResults;
-        }
-        else if(this.state.filter.length) {
-            console.log("using filter")
-            resultsArray = this.state.filterResults;
-        }
         else{
-            console.log("using search")
-            resultsArray = this.state.searchResults;
+            resultsArray = this.state.queryResults;
         }
 
         return(
@@ -164,31 +149,25 @@ class Directory extends Component {
                         Sort By
                     </button>
                     {
-                        this.state.filter.length
+                        this.state.sort.length
                         ?
                         <div>
                             <br/>
-                            <p>Sorted By {this.state.filter}</p>
+                            <p>Sorted By {this.state.sort}</p>
                         </div>
                         :
                         null
                     }
                     <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <option className="dropdown-item" name="filter" value="First Name" onClick={this.handleFilterChange}>First Name</option>
-                        <option className="dropdown-item" name="filter" value="Last Name" onClick={this.handleFilterChange}>Last Name</option>
-                        <option className="dropdown-item" name="filter" value="Email" onClick={this.handleFilterChange}>Email</option>
-                        <option className="dropdown-item" name="filter" value="Phone Number" onClick={this.handleFilterChange}>Phone Number</option>
-                        <option className="dropdown-item" name="filter" value="Username" onClick={this.handleFilterChange}>Username</option>
-                        <option className="dropdown-item" name="filter" value="" onClick={this.handleFilterChange}>No Filter</option>
+                        <option className="dropdown-item" name="sort" value="First Name" onClick={this.handleSortChange}>First Name</option>
+                        <option className="dropdown-item" name="sort" value="Last Name" onClick={this.handleSortChange}>Last Name</option>
+                        <option className="dropdown-item" name="sort" value="Email" onClick={this.handleSortChange}>Email</option>
+                        <option className="dropdown-item" name="sort" value="Phone Number" onClick={this.handleSortChange}>Phone Number</option>
+                        <option className="dropdown-item" name="sort" value="Username" onClick={this.handleSortChange}>Username</option>
+                        <option className="dropdown-item" name="sort" value="" onClick={this.handleSortChange}>None</option>
                     </div>
                 </div>
                 {
-                    !this.state.searchTerm.length
-                    ?
-                    resultsArray.map(employee => 
-                        <EmployeeList employee={employee} key={this.counter++}></EmployeeList>
-                    )
-                    :
                     resultsArray.map(employee => 
                         <EmployeeList employee={employee} key={this.counter++}></EmployeeList>
                     )
