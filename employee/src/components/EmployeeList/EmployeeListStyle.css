@@ -1,0 +1,11 @@
+p{
+    font-weight: bold;
+}
+
+span{
+    font-weight: normal;
+}
+
+.row{
+    margin-bottom: 20px;
+}
